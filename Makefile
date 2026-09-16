@@ -104,7 +104,7 @@ endif
 MOCSY_EXT := mocsy$(EXT_SUFFIX)
 
 # List of executables to be built within the package
-PROGRAMS = libmocsy.a $(MOCSY_EXT) test_mocsy test_errors test_derivauto test_derivnum test_buffesm test_phizero test_kprime test_kzero
+PROGRAMS = libmocsy.a $(MOCSY_EXT) test_mocsy test_vars test_errors test_derivauto test_derivnum test_buffesm test_phizero test_kprime test_kzero
 
 # "make" builds all
 all: $(PROGRAMS)

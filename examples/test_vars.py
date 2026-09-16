@@ -1,13 +1,12 @@
-
 # coding: utf-8
-
-# change this as appropriate
-mocsy_dir = "/home/username/Documents/mocsy"
 
 ## Preliminaries
 import os, sys
+
+# directory containing the compiled mocsy module (repository root)
+mocsy_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)
 import numpy as np
-sys.path.append (mocsy_dir)
+sys.path.insert(0, mocsy_dir)
 import mocsy
 
 
@@ -47,12 +46,11 @@ ph,pco2,fco2,co2,hco3,co3,omegaa,omegac,betad,rhosw,p,tempis = \
                     optb='u74', optk1k2='l', optkf='dg', opts='Sabs')
 
 # Results
-print "ph",   ph[0]
-print "pco2", pco2[0]
-print "fco2", fco2[0]
-print "co2",  co2[0]
-print "hco3", hco3[0]
-print "co3",  co3[0]
-print "omegaA", omegaa[0]
-print "omegaC", omegac[0]
-
+print("ph",   ph[0])
+print("pco2", pco2[0])
+print("fco2", fco2[0])
+print("co2",  co2[0])
+print("hco3", hco3[0])
+print("co3",  co3[0])
+print("omegaA", omegaa[0])
+print("omegaC", omegac[0])

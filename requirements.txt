@@ -1,1 +1,5 @@
-numpy
+# Build requirements for "make mocsy.so" (see README.md)
+numpy>=2.4
+meson
+ninja
+charset_normalizer

@@ -1,4 +1,7 @@
 import numpy as np
+import os, sys
+# the compiled mocsy module is in the repository root
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
 from mocsy import *
 
 invar = ['alk','dic','pho','sil','tem','sal','k0 ','k1 ','k2 ','kb ','kw ','ka ','kc ']
@@ -30,8 +33,8 @@ optCON, optT, optP, optb=optB, optk1k2=optK1K2, optkf=optKf    )
 # [H+] concentration
 H = 10.0**(-ph[0])
 
-print "derivnum: Absolute derivatives" 
-print "             dh_dx         dpco2_dx       dfco2_dx         dco2_dx      dhco3_dx       dco3_dx       dOmegaA_dx     dOmegaC_dx"
+print("derivnum: Absolute derivatives")
+print("             dh_dx         dpco2_dx       dfco2_dx         dco2_dx      dhco3_dx       dco3_dx       dOmegaA_dx     dOmegaC_dx")
 
 for i in range(13):
     [dh_dx, dpco2_dx, dfco2_dx, dco2_dx, dhco3_dx, dco3_dx, dOmegaA_dx, dOmegaC_dx] = \
@@ -39,7 +42,7 @@ for i in range(13):
     temp, sal, alk, dic, sil, phos, Patm, depth, lat, invar[i],
     optCON, optT, optP, optb=optB, optk1k2=optK1K2, optkf=optKf    )
     #
-    print "%3s  :  %14.6e %14.6e %14.6e %14.6e %14.6e %14.6e %14.6e %14.6e" %  \
-    (invar[i], dh_dx[0], dpco2_dx[0], dfco2_dx[0], dco2_dx[0], dhco3_dx[0], dco3_dx[0], 
-    dOmegaA_dx[0], dOmegaC_dx[0] )
+    print("%3s  :  %14.6e %14.6e %14.6e %14.6e %14.6e %14.6e %14.6e %14.6e" %
+    (invar[i], dh_dx[0], dpco2_dx[0], dfco2_dx[0], dco2_dx[0], dhco3_dx[0], dco3_dx[0],
+    dOmegaA_dx[0], dOmegaC_dx[0]))
 

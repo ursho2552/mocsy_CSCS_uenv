@@ -71,12 +71,12 @@ python -m venv --system-site-packages path/to/my-venv
 source path/to/my-venv/bin/activate
 ```
 
-Install the build dependencies:
+Install the build dependencies listed in [`requirements.txt`](requirements.txt)
+(`numpy>=2.4`, `meson`, `ninja`, `charset_normalizer`):
 
 ```bash
 pip install --upgrade pip
-pip install --upgrade "numpy>=2.4" charset_normalizer
-python -m pip install --upgrade ninja meson
+pip install --upgrade -r requirements.txt
 ```
 
 The venv only works from inside the uenv it was created in. When you log in
@@ -103,9 +103,10 @@ python -c "import mocsy; print(mocsy.__file__)"
 ## Build elsewhere
 
 On any Linux machine with the [requirements](#requirements) above, activate a
-Python environment that has `numpy>=2.4`, `meson` and `ninja`, then run:
+Python environment, then run:
 
 ```bash
+pip install --upgrade -r requirements.txt
 make clean
 make mocsy.so
 ```
@@ -126,6 +127,9 @@ make test_mocsy
 ./test_mocsy
 ```
 
+`make` without a target builds the library, the Python module and all Fortran
+test programs.
+
 ## Using mocsy from Python
 
 ```python
@@ -140,8 +144,15 @@ pH, pco2, fco2, co2, hco3, co3, OmegaA, OmegaC, BetaD, rhoSW, p, tempis = mocsy.
 )
 ```
 
-The compiled module is not installed into the environment. Run Python from the
-repository directory, or add that directory to your path:
+Each Fortran module is exposed as `mocsy.m<name>` and contains the routine of
+the same name, e.g. `mocsy.mconstants.constants(...)` or
+`mocsy.mdepth2press.depth2press(...)`. The gas exchange routines are in
+`mocsy.gasx`. Use `print(mocsy.<module>.<routine>.__doc__)` to see the
+arguments.
+
+The compiled module is not installed into the environment (the repository has
+no `pip install` support). Run Python from the repository directory, or add
+that directory to your path:
 
 ```bash
 export PYTHONPATH=/path/to/mocsy_cscs_uenv:$PYTHONPATH
@@ -167,21 +178,20 @@ doxygen Doxyfile
 # open doc/html/index.html
 ```
 
-The main page source is [`mainpage.txt`](mainpage.txt). Examples are in
-[`examples/`](examples/) and Jupyter notebooks are in
-[`notebooks/`](notebooks/). Read the known limitations below before using them.
+The main page source is [`mainpage.txt`](mainpage.txt).
 
-## Known limitations
+## Examples and tests
 
-- **Only the Makefile build is supported.** `setup.py` does not work with
-  current Python/NumPy: it uses `numpy.distutils` (removed) and
-  `setuptools.command.test` (removed), and it reads files that no longer exist
-  (`README.rst`, `mocsy/__init__.py`). `pip install .` will fail.
-- **The Python examples and notebooks are written for Python 2** (`print x`
-  statements, `python2` kernels). Some also contain hard-coded paths from the
-  original authors' machines. They need small changes to run under Python 3.
-- **`test/test_mocsy.py` does not run** under current pytest: it calls a
-  `@pytest.fixture` directly.
+After `make mocsy.so`, from the repository root:
+
+| What | How to run |
+|---|---|
+| Python examples ([`examples/*.py`](examples/)) | `python examples/test_mocsy.py` |
+| Fortran examples ([`examples/*.f90`](examples/)) | `make test_errors && ./test_errors` |
+| Regression test ([`test/test_mocsy.py`](test/test_mocsy.py)) | `pip install pytest`, then `pytest test` |
+| Jupyter notebooks ([`notebooks/`](notebooks/)) | need `jupyter`, `pandas` and `matplotlib`; the notebooks find the module one directory up |
+
+Example input data are in [`examples/data/`](examples/data/).
 
 ## References
 

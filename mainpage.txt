@@ -307,7 +307,7 @@ As an example, here is the call in python of the main routine <em>vars</em>
 
 \verbatim
     pH, pco2, fco2, co2, hco3, co3, OmegaA, OmegaC, BetaD, DENis, p, Tis = (
-    mocsy.mvars (t, s, alk, dic, sio2, po4, Patm, depth, lat, optcon='mol/kg', optt='Tinsitu', optp='m', optb="u74", optk1k2='l', optkf="dg", optGAS="Ppot")
+    mocsy.mvars.vars(t, s, alk, dic, sio2, po4, Patm, depth, lat, optcon='mol/kg', optt='Tinsitu', optp='m', optb="u74", optk1k2='l', optkf="dg", optgas="Ppot")
     )
 \endverbatim
 
@@ -318,12 +318,12 @@ conversion, both ways, is illustrated by the original authors' script
 <em>mocsy_GLODAP.py</em> (not distributed in this repository), which
 also read netCDF input files remotely via OpenDAP.
 
-Other subroutines needed by <em>mocsy.mvars</em> are also available to
+Other subroutines needed by <em>mocsy.mvars.vars</em> are also available to
 the user.  For example, to get the equilibrium constants that were
-used in the above call to <em>mocsy.mvars</em>, the command is
+used in the above call to <em>mocsy.mvars.vars</em>, the command is
 
 \verbatim
-    Kh, K1, K2, Kb, Kw, Ks, Kf, Kspc, Kspa, K1p, K2p, K3p, Ksi, St, Ft, Bt = mocsy.mconstants (t, s, Patm, depth, lat, optt='Tinsitu', optp='m', optb="u74", optk1k2='l', optkf="dg", optGAS="Ppot")
+    Kh, K1, K2, Kb, Kw, Ks, Kf, Kspc, Kspa, K1p, K2p, K3p, Ksi, St, Ft, Bt = mocsy.mconstants.constants(t, s, Patm, depth, lat, optt='Tinsitu', optp='m', optb="u74", optk1k2='l', optkf="dg", optgas="Ppot")
 \endverbatim
 
 Other routines are available to compute pressure, in-situ density,
@@ -332,35 +332,35 @@ between pCO2, fCO2 and xCO2.
 
 \verbatim
 # Compute pressure (db) from depth (m) and latitude (degrees north) following Saunders (1981)
-pfd = mocsy.mdepth2press(depth,lat)   
+pfd = mocsy.mdepth2press.depth2press(depth, lat)
 
 # Compute in situ density (kg/m3) from salinity (psu), in-situ temp (C), and hydrostatic pressure (db)
-rhois = mocsy.mrhoinsitu(s, t, pfd)  
+rhois = mocsy.mrhoinsitu.rhoinsitu(s, t, pfd)
 
 # Compute potential temperature (C) from salinity (psu), in situ temperature (C), and hydrostatic pressure (db)
-Tpot = mocsy.mtpot(s, Tis, pfd, 0)     
+Tpot = mocsy.mtpot.tpot(s, Tis, pfd, 0)
 
 # Compute in situ temperature (C) from salinity (psu), potential temperature (C), and hydrostatic pressure (db)
-Tis = mocsy.mtis(s, Tpot, pfd, 0)
+Tis = mocsy.mtis.tis(s, Tpot, pfd, 0)
 
 # Compute oceanic pCO2 (uatm) from arrays of fCO2 (uatm), in situ temp (C), atm pressure (atm), & hydrostatic pressure (db)
-pCO2 = mocsy.mf2pCO2(fCO2, temp, Patm, p)
+pCO2 = mocsy.mf2pco2.f2pco2(fCO2, temp, Patm, p)
 
 # Compute oceanic fCO2 (uatm) from arrays of pCO2 (uatm), in situ temp (C), atm pressure (atm), & hydrostatic pressure (db)
-fCO2 = mocsy.mp2fCO2(pCO2, temp, Patm, p)
+fCO2 = mocsy.mp2fco2.p2fco2(pCO2, temp, Patm, p)
 
 # Compute atmospheric xCO2 (ppm) from arrays of atmospheric pCO2 (uatm), surface ocean T (C), S (psu), & atm pressure (atm)
-xCO2atm = mocsy.mgasx.pCO2atm2xCO2(pCO2atm, temp, salt, Patm)
+xCO2atm = mocsy.gasx.pco2atm2xco2(pCO2atm, temp, salt, Patm)
 
 # Compute atmospheric pCO2 (uatm) from arrays of atmospheric xCO2 (ppm), surface ocean T (C), S (psu), & atm pressure (atm)
-pCO2atm = mocsy.mgasx.x2pCO2atm(xCO2, temp, salt, Patm)
+pCO2atm = mocsy.gasx.x2pco2atm(xCO2, temp, salt, Patm)
 
 # Compute vapor pressure of seawater (atm) following procedure from Weiss & Price (1980)
-vpsw = mocsy.mgasx.vapress(temp, salt)
+vpsw = mocsy.gasx.vapress(temp, salt)
 
 # Computes air-sea CO2 flux & surface-ocean carbonate system vars (see mocsy doc & OCMIP2 Abiotic HOWTO)
 co2flux,co2ex,dpco2,ph,pco2,fco2,co2,hco3,co3,OmegaA,OmegaC,BetaD,rhoSW,p,tempis = \
-mocsy.mgasx.flxco2(temp, sal, alk, dic, sil, phos, kw660, xco2, Patm, dz1,         \
+mocsy.gasx.flxco2(temp, sal, alk, dic, sil, phos, kw660, xco2, Patm, dz1,          \
 optCON, optT, optP, optB, optK1K2, optKf, optGAS)
 
 \endverbatim
@@ -376,7 +376,7 @@ DIC and ALk in mol/kg, in situ temperature, pressure.
 $ python
 import mocsy
 pH,pco2,fco2,co2,hco3,co3,OmegaA,OmegaC,BetaD,DENis,p,Tis = \
-mocsy.mvars (temp=18, sal=35, alk=2300.e-6, dic=2000.e-6, sil=0, phos=0, patm=1., depth=100, lat=0, optcon='mol/kg', optt='Tinsitu', optp='db', optb="u74", optk1k2='l', optkf="dg", optgas='Pinsitu')
+mocsy.mvars.vars(temp=18, sal=35, alk=2300.e-6, dic=2000.e-6, sil=0, phos=0, patm=1., depth=100, lat=0, optcon='mol/kg', optt='Tinsitu', optp='db', optb="u74", optk1k2='l', optkf="dg", optgas='Pinsitu')
 \endverbatim
 
 Compute the CONSTANTS with the same scalar input for S, T, and P (as above) but
@@ -386,7 +386,7 @@ Lee et al. (2010) for total boron and Millero (2010) for \f$K_1\f$ and
 
 \verbatim
 Kh,K1,K2,Kb,Kw,Ks,Kf,Kspc,Kspa,K1p,K2p,K3p,Ksi,St,Ft,Bt = \
-mocsy.mconstants (temp=18.,sal=35., patm=1., depth=0.,lat=0., optt='Tinsitu', optp='m', optb="l10", optk1k2='m10', optkf="dg", optgas='Ppot')
+mocsy.mconstants.constants(temp=18.,sal=35., patm=1., depth=0.,lat=0., optt='Tinsitu', optp='m', optb="l10", optk1k2='m10', optkf="dg", optgas='Ppot')
 \endverbatim
  
 For MODEL input:
@@ -395,7 +395,7 @@ Also do NOT specify last 4 options, thus using defaults (optb='l10', optk1k2='l'
 
 \verbatim
 pH,pco2,fco2,co2,hco3,co3,OmegaA,OmegaC,BetaD,DENis,p,Tis = \
-mocsy.mvars (temp=18, sal=35, alk=2300*1028e-6, dic=2000*1028e-6, sil=0, phos=0, patm=1, depth=100, lat=0, optcon='mol/m3', optt='Tpot', optp='m')
+mocsy.mvars.vars(temp=18, sal=35, alk=2300*1028e-6, dic=2000*1028e-6, sil=0, phos=0, patm=1, depth=100, lat=0, optcon='mol/m3', optt='Tpot', optp='m')
 \endverbatim
 
 2) Simple arrays (numpy):
@@ -410,15 +410,16 @@ one = np.ones(11,dtype='float32')
 
 sal   = 35*one
 temp  = 2*one
+patm  = 1*one
 depth = np.arange(0,11000,1000,dtype='float32') # units in 'm'
 
 # Compute in situ density (3 steps using 2 mocsy routines):
 # a) Specify latitude = 60°S for depth to pressure conversion formula
 lat = -60*one
 # b) Compute pressure (db) from depth (m) and latitude following Saunders (1981)
-pfd = mocsy.mdepth2press(depth,lat)  # units in 'db' 
+pfd = mocsy.mdepth2press.depth2press(depth, lat)  # units in 'db'
 # c) Compute in situ density (kg/m3) from salinity (psu), in-situ temp (C), and pressure (db)
-rhois = mocsy.mrhoinsitu(sal, temp, pfd)  
+rhois = mocsy.mrhoinsitu.rhoinsitu(sal, temp, pfd)
 
 # Specify surface concentrations typical of 60°S (from GLODAP and WOA2009)
 alk   = 2295*one # umol/kg
@@ -435,7 +436,7 @@ alk = alk * rhois * 1e-6
 
 # Compute carbonate system variables, using 'model' options
 pH,pco2,fco2,co2,hco3,co3,OmegaA,OmegaC,BetaD,DENis,p,Tis = \
-mocsy.mvars (temp=temp, sal=sal, alk=alk, dic=dic, sil=sio2, phos=po4, patm=1, depth=depth, lat=lat, optcon='mol/m3', optt='Tpot', optp='m')
+mocsy.mvars.vars(temp=temp, sal=sal, alk=alk, dic=dic, sil=sio2, phos=po4, patm=patm, depth=depth, lat=lat, optcon='mol/m3', optt='Tpot', optp='m')
 
 # Print out depth and carbonate ion concentration (converted to umol/kg)
 print(depth, co3 / (DENis * 1e-6))
@@ -449,8 +450,8 @@ $ python
 import numpy as np
 import mocsy
 
-# Read .csv input file with 7 columns: flag, Alk(mol/kg), DIC(mol/kg), salinity(psu), temp(C), press(db), PO43-(mol/kg), SiO2(mol/kg)
-infilename = "DIC-Alk-P_vary_input.csv"
+# Read .csv input file (in examples/data/) with 8 columns: flag, Alk(mol/kg), DIC(mol/kg), salinity(psu), temp(C), press(db), PO43-(mol/kg), SiO2(mol/kg)
+infilename = "examples/data/DIC-Alk-P_vary_input.csv"
 indata = np.loadtxt(infilename, delimiter=',', dtype='float32', skiprows=1)
 n = len(indata)
 alk = indata[:,1]
@@ -463,16 +464,17 @@ sil   = indata[:,7]
 
 # Specify that latitude = 45°N for all samples (for depth to pressure conversion)
 # note: "lat" is required input for mocsy, but results are only weakly sensitive
-lat  = np.zeros([n,], dtype='float32')
-lat.fill(45.)
+lat  = np.full(n, 45., dtype='float32')
+# Atmospheric pressure (atm) for all samples
+patm = np.ones(n, dtype='float32')
 
 # Recover computed carbonate system variables
 ph, pco2, fco2, co2, hco3, co3, OmegaA, OmegaC, BetaD, rhoSW, p, tempis = \
-mocsy.mvars (temp, sal, alk,dic, sil, phos, depth, lat, optcon='mol/kg', optt='Tinsitu', optp='db', optb="u74", optk1k2='l', optkf="dg")
+mocsy.mvars.vars(temp, sal, alk, dic, sil, phos, patm, depth, lat, optcon='mol/kg', optt='Tinsitu', optp='db', optb="u74", optk1k2='l', optkf="dg")
 
 # Save results to another .csv file
 results = np.dstack ((sal, temp, p, ph, pco2, fco2, co2, hco3, co3, OmegaA, OmegaC, BetaD, dic, alk))
-outfilename = "DIC-Alk-P-vary-from-mocsy.csv"
+outfilename = "DIC-Alk-P-vary-output.csv"
 outfile = open(outfilename, "w")
 outfile.write ("S, T, P, pH, pCO2, fCO2, CO2, HCO3, CO3, OmegaAragonite, OmegaCalcite, BetaD, DIC, ALK\n")
 np.savetxt(outfile, results[0], delimiter=',', fmt="%1.6g")

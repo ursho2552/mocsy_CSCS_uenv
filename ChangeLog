@@ -12,6 +12,16 @@ version 2.4.0+cscs.1, 2026-09-16  (fork: mocsy_cscs_uenv)
 	  published versions of references, fixed broken DOI and link
 	- Doxyfile: relative paths, scan src/ recursively
 	- added .gitignore; removed obsolete .travis.yml
+	- removed setup.py and MANIFEST.in (numpy.distutils no longer exists);
+	  requirements.txt now lists the build requirements
+	- examples, test/test_mocsy.py and the two remaining notebooks ported to
+	  python 3 and to the module.routine call style (e.g. mocsy.mvars.vars);
+	  they now find the module in the repository root by themselves
+	- mainpage.txt python examples: same call style, patm argument fixed
+	- example data moved from mocsy/data/ to examples/data/
+	- removed CMIP5_mocsy.sh (site-specific, script it calls is missing),
+	  test_mocsy_buffesm.f90 (no longer compiles) and the IOOS notebooks
+	  mocsy.ipynb and mocsy_docs.ipynb; test_vars added to "make"
 
 version 2.4.0, 2018-11-11
 	-----------------------------------

@@ -1,9 +1,12 @@
-from __future__ import (absolute_import, division, print_function)
+"""Regression test for the python module; run "make mocsy.so" first, then "pytest test"."""
+import os
+import sys
 
-import pytest
 import numpy as np
+import pytest
 
-import mocsy
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
+import mocsy  # noqa: E402
 
 
 @pytest.fixture
@@ -14,39 +17,39 @@ def scalar_variables():
     DATA input: DIC and ALk in mol/kg, in situ temperature, pressure.
     """
 
-    return mocsy.mvars(temp=18,
-                       sal=35,
-                       alk=2300.e-6,
-                       dic=2000.e-6,
-                       sil=0,
-                       phos=0,
-                       patm=1,
-                       depth=100,
-                       lat=0,
-                       optcon='mol/kg',
-                       optt='Tinsitu',
-                       optp='db',
-                       optb='u74',
-                       optk1k2='l',
-                       optkf='dg',
-                       optgas='Pinsitu')
+    return mocsy.mvars.vars(temp=18,
+                            sal=35,
+                            alk=2300.e-6,
+                            dic=2000.e-6,
+                            sil=0,
+                            phos=0,
+                            patm=1,
+                            depth=100,
+                            lat=0,
+                            optcon='mol/kg',
+                            optt='Tinsitu',
+                            optp='db',
+                            optb='u74',
+                            optk1k2='l',
+                            optkf='dg',
+                            optgas='Pinsitu')
 
-def test_return_12():
-    ret = scalar_variables()
-    assert len(ret) == 12
 
-def test_return_scalar():
-    ret = scalar_variables()
-    for var in ret:
+def test_return_12(scalar_variables):
+    assert len(scalar_variables) == 12
+
+
+def test_return_scalar(scalar_variables):
+    for var in scalar_variables:
         assert len(var) == 1
 
-def test_return_real():
-    ret = scalar_variables()
-    for var in ret:
+
+def test_return_real(scalar_variables):
+    for var in scalar_variables:
         assert np.isreal(var)
 
-def test_known_values():
-    ret = scalar_variables()
+
+def test_known_values(scalar_variables):
     pH = 8.14892578
     pco2 = 312.28662109
     fco2 = 300.68057251
@@ -61,4 +64,4 @@ def test_known_values():
     Tis = 18.0
     known = pH, pco2, fco2, co2, hco3, co3, OmegaA, OmegaC, BetaD, DENis, p, Tis
 
-    np.testing.assert_allclose(known, np.array(ret).ravel(), rtol=1e-05)
+    np.testing.assert_allclose(known, np.array(scalar_variables).ravel(), rtol=1e-05)

@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 import numpy as np
+import os, sys
+# the compiled mocsy module is in the repository root
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
 import mocsy
 
 # Define input data (typical values at depth from 0 to 5000 meters)
@@ -40,20 +43,18 @@ OmegaA_deriv = OmegaA_deriv.reshape ((6,6), order='F')
 # Run mocsy.vars()
 # Notice that option names are all lowercase
 ph, pco2, fco2, co2, hco3, co3, OmegaA, OmegaC, BetaD, rhoSW, p, tempis = \
-    mocsy.mvars (temp, sal, alk, dic, sil, phos, Patm, depth, lat,
+    mocsy.mvars.vars(temp, sal, alk, dic, sil, phos, Patm, depth, lat,
                  optcon='mol/kg', optt='Tinsitu', optp='db', optb='l10', optk1k2=optK1K2, optkf='dg')
 
 # print mocsy results
 # -------------------
 
-print "pH     pCO2   fCO2     CO2*       HCO3-       CO32-      OmegaA OmegaC  R    Density Press  Temperature"
+print("pH     pCO2   fCO2     CO2*       HCO3-       CO32-      OmegaA OmegaC  R    Density Press  Temperature")
 for i in range (0, 6):
-    print ph[i], pco2[i], fco2[i], co2[i], hco3[i], co3[i], OmegaA[i], OmegaC[i], BetaD[i], rhoSW[i], p[i], tempis[i]
-
-
+    print(ph[i], pco2[i], fco2[i], co2[i], hco3[i], co3[i], OmegaA[i], OmegaC[i], BetaD[i], rhoSW[i], p[i], tempis[i])
 # Compute automatic derivatives (using automatic differentiation)
 ph_deriv, pco2_deriv, fco2_deriv, co2_deriv, hco3_deriv, co3_deriv, OmegaA_deriv, OmegaC_deriv = \
-    mocsy.mderivauto(temp, sal, alk, dic, sil, phos, Patm, depth, lat,                                     # INPUT
+    mocsy.mderivauto.derivauto(temp, sal, alk, dic, sil, phos, Patm, depth, lat,                                     # INPUT
                     optcon='mol/kg', optt='Tinsitu', optp='db', optb='l10', optk1k2=optK1K2, optkf='dg')  # INPUT OPTIONS
 
 # Compute buffer factors from Egleston
@@ -69,14 +70,13 @@ beta_Alk  = -1. / (np.log(10.) * ph_deriv[0,:])
 omega_DIC = OmegaA / OmegaA_deriv[1,:]
 omega_Alk = OmegaA / OmegaA_deriv[0,:]
 
-print ""
-print "gamma_DIC     gamma_Alk     beta_DIC     beta_Alk    omega_DIC    omega_Alk"
+print("")
+print("gamma_DIC     gamma_Alk     beta_DIC     beta_Alk    omega_DIC    omega_Alk")
 for i in range (0, 6):
-    print gamma_DIC[i], gamma_Alk[i], beta_DIC[i], beta_Alk[i], omega_DIC[i], omega_Alk[i]
-
+    print(gamma_DIC[i], gamma_Alk[i], beta_DIC[i], beta_Alk[i], omega_DIC[i], omega_Alk[i])
 # Print derivatives of pH with respect to phosphate, silicate, temperature and salinity
-print ""
-print "dpH/dPhos  dpH/dSil  dpH/dT   dpH/dS"
-print "pH/µMol     pH/µMol  pH/°C   pH/psu"
+print("")
+print("dpH/dPhos  dpH/dSil  dpH/dT   dpH/dS")
+print("pH/µMol     pH/µMol  pH/°C   pH/psu")
 for i in range (0, 6):
-    print ph_deriv[2,i], ph_deriv[3,i], ph_deriv[4,i], ph_deriv[5,i]
+    print(ph_deriv[2,i], ph_deriv[3,i], ph_deriv[4,i], ph_deriv[5,i])

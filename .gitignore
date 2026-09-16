@@ -19,6 +19,9 @@ src/singledouble.f90
 /test_kprime
 /test_kzero
 
+# Output written by Example 3 in mainpage.txt
+DIC-Alk-P-vary-output.csv
+
 # Doxygen output (OUTPUT_DIRECTORY in Doxyfile)
 /doc/
 
