@@ -1,0 +1,30 @@
+# Build products (see Makefile: clean / veryclean)
+*.o
+*.mod
+*.a
+*.so
+.f2py_f2cmap
+
+# Generated from src/singledouble.m4 by m4
+src/singledouble.f90
+
+# Fortran test executables
+/test_mocsy
+/test_vars
+/test_errors
+/test_derivauto
+/test_derivnum
+/test_buffesm
+/test_phizero
+/test_kprime
+/test_kzero
+
+# Doxygen output (OUTPUT_DIRECTORY in Doxyfile)
+/doc/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.ipynb_checkpoints/

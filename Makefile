@@ -1,7 +1,7 @@
 #  -------------------
-#  Usage: 
+#  Usage:
 #         make clean
-#         make 
+#         make
 #  -------------------
 #  GNU_Makefile to COMPILE and LINK  test_mocsy.f90 and mocsy.f90
 #  James Orr, LSCE/IPSL, CEA-CNRS-UVSQ, 91191 Gif-sur-Yvette, France
@@ -16,7 +16,7 @@
 PRECISION = 2
 #PRECISION = 1
 
-# mapping between Fortran and C types (for f2py)
+# mapping between Fortran and C types
 ifeq (${PRECISION}, 2)
     KIND_MAP = kind_map_d
 else
@@ -24,7 +24,7 @@ else
 endif
 
 #=======================================================================
-#               define GSW-fortran files 
+#               define GSW-fortran files
 #=======================================================================
 GSW = src/GSW
 
@@ -63,7 +63,10 @@ GSW_TOOL_SRCS := \
 	$(GSW)/gsw_specvol.f90
 
 GSW_TOOL_OBJS := $(GSW_TOOL_SRCS:.f90=.o)
-
+# Absolute object paths are needed for f2py meson backend (temp build dir)
+GSW_MOD_OBJS_ABS := $(abspath $(GSW_MOD_OBJS))
+GSW_TOOL_OBJS_ABS := $(abspath $(GSW_TOOL_OBJS))
+DNAD_OBJ_ABS := $(abspath src/DNAD.o)
 #=======================================================================
 #=======================================================================
 
@@ -73,19 +76,35 @@ GSW_TOOL_OBJS := $(GSW_TOOL_SRCS:.f90=.o)
 #FC = xlf
 #FC = f95
 #F90 = f95
-FC = gfortran -ffree-line-length-none
-F90 = gfortran -ffree-line-length-none
+# FCBIN must stay a bare executable name (no arguments): it is passed as FC
+# to f2py's meson backend below, and meson expects a plain command there.
+FCBIN = gfortran
+FREEFORMFLAGS = -ffree-line-length-none
+FC = $(FCBIN) $(FREEFORMFLAGS)
+F90 = $(FCBIN) $(FREEFORMFLAGS)
 #FC = ifort
 #F90 = ifort
 
 FCFLAGS = -fPIC -cpp -DUSE_PRECISION=$(PRECISION)
 #DEBUGFLAGS = -g
 LDFLAGS = -L./ -lmocsy
-INCLUDEFLAGS = -Isrc
+PROJECT_DIR := $(abspath .)
+INCLUDEFLAGS = -I$(PROJECT_DIR) -I$(abspath src) -I$(abspath src/GSW)
 
+# f2py is called as "$(PYTHON) -m numpy.f2py" rather than the bare "f2py"
+# script, so that it is guaranteed to belong to the active (venv) interpreter.
+PYTHON ?= python
+
+# f2py names the module mocsy<EXT_SUFFIX>, e.g. mocsy.cpython-313-x86_64-linux-gnu.so,
+# not plain "mocsy.so". Use the real name so make can tell when it is up to date.
+EXT_SUFFIX := $(shell $(PYTHON) -c 'import sysconfig; print(sysconfig.get_config_var("EXT_SUFFIX") or "")' 2>/dev/null)
+ifeq ($(strip $(EXT_SUFFIX)),)
+    EXT_SUFFIX := .so
+endif
+MOCSY_EXT := mocsy$(EXT_SUFFIX)
 
 # List of executables to be built within the package
-PROGRAMS = libmocsy.a mocsy.so test_mocsy test_errors test_derivauto test_derivnum test_buffesm test_phizero test_kprime test_kzero
+PROGRAMS = libmocsy.a $(MOCSY_EXT) test_mocsy test_errors test_derivauto test_derivnum test_buffesm test_phizero test_kprime test_kzero
 
 # "make" builds all
 all: $(PROGRAMS)
@@ -120,7 +139,7 @@ SOURCES = src/singledouble.f90 \
           src/buffesm.f90 \
           src/p2fCO2.f90 \
           src/f2pCO2.f90 \
-          src/gasx.f90 
+          src/gasx.f90
 
 OBJS := $(SOURCES:.f90=.o)
 
@@ -138,24 +157,35 @@ $(EXEC): $(library) $(EXEC).o
 	$(FC) $(FCFLAGS) -o $@ $@.o $(LDFLAGS)
 
 # Build the shared object file for python
-mocsy.so: $(GSW_MOD_OBJS) $(GSW_TOOL_OBJS) src/DNAD.o $(SOURCES)
+# NB1: the meson backend of f2py compiles in a temporary directory, so object
+#      files and include dirs must be given as absolute paths (*_ABS, INCLUDEFLAGS).
+# NB2: the compiler is selected with FC=...; --fcompiler is ignored by meson.
+# NB3: --f90flags IS honoured and carries -cpp -DUSE_PRECISION=...; the
+#      "#if USE_PRECISION" blocks in src/*.f90 do not compile without it.
+$(MOCSY_EXT): $(GSW_MOD_OBJS) $(GSW_TOOL_OBJS) src/DNAD.o $(SOURCES)
 	# cp src/*.f90 .
 	# Select the kind map
 	cp -f -s src/$(KIND_MAP) .f2py_f2cmap
-	f2py -c -L. $(SOURCES) skip: vars_sprac : skip: vars_pertK : skip: varsolver_dnad :   \
+	FC=$(FCBIN) $(PYTHON) -m numpy.f2py -c -L. $(SOURCES) skip: vars_sprac : skip: vars_pertK : skip: varsolver_dnad :   \
 	    skip: constants_dnad : skip: sw_ptmp_dnad : skip: sw_temp_dnad : skip: sw_adtg_dnad :   \
 	    skip: rho_dnad : skip: equation_at_dnad : skip: solve_at_general_dnad :                 \
-	    $(GSW_MOD_OBJS) $(GSW_TOOL_OBJS) src/DNAD.o -m mocsy --fcompiler=gnu95                      \
+	    $(GSW_MOD_OBJS_ABS) $(GSW_TOOL_OBJS_ABS) $(DNAD_OBJ_ABS) -m mocsy                       \
 	    --f90flags="$(FCFLAGS) $(INCLUDEFLAGS)"
 	# rm $(SOURCES) DNAD.f90
+
+# Keep "make mocsy.so" working as an alias for the real module name
+ifneq ($(MOCSY_EXT),mocsy.so)
+.PHONY: mocsy.so
+mocsy.so: $(MOCSY_EXT)
+endif
 #---------------------------------------------------------------------------
 # Other test programs
 
 test_vars: $(library) test_vars.o
-	${F90} ${FCFLAGS} -o $@ $@.o $(LDFLAGS) 
+	${F90} ${FCFLAGS} -o $@ $@.o $(LDFLAGS)
 
 test_errors: $(library) test_errors.o
-	${F90} ${FCFLAGS} -o $@ $@.o $(LDFLAGS) 
+	${F90} ${FCFLAGS} -o $@ $@.o $(LDFLAGS)
 
 test_derivauto: $(library) test_derivauto.o
 	${F90} ${FCFLAGS} -o $@ $@.o $(LDFLAGS)
@@ -167,19 +197,19 @@ test_buffesm: $(library) test_buffesm.o
 	${F90} ${FCFLAGS} -o $@ $@.o $(LDFLAGS)
 
 test_phizero: $(library) test_phizero.o
-	${F90} ${FCFLAGS} -o $@ $@.o $(LDFLAGS) 
+	${F90} ${FCFLAGS} -o $@ $@.o $(LDFLAGS)
 
 test_kprime: $(library) test_kprime.o
-	${F90} ${FCFLAGS} -o $@ $@.o $(LDFLAGS) 
+	${F90} ${FCFLAGS} -o $@ $@.o $(LDFLAGS)
 
 test_kzero: $(library) test_kzero.o
-	${F90} ${FCFLAGS} -o $@ $@.o $(LDFLAGS) 
+	${F90} ${FCFLAGS} -o $@ $@.o $(LDFLAGS)
 
 # General rule for building prog from prog.o; $^ (GNU extension) is
 # used in order to list additional object files on which the
 # executable depends
 %: %.o
-	$(FC) $(FCFLAGS) -o $@ $^ 
+	$(FC) $(FCFLAGS) -o $@ $^
 
 # General rules for building prog.o from prog.f90 or prog.F90; $< is
 # used in order to list only the first prerequisite (the source file)
@@ -191,10 +221,10 @@ test_kzero: $(library) test_kzero.o
 	$(FC) $(FCFLAGS) $(INCLUDEFLAGS) -c $< -o $@
 
 # Utility targets
-.PHONY: clean veryclean
+.PHONY: all clean veryclean
 
 clean:
-	rm -f *.o src/*.o $(GSW)/*.o *.mod *.a src/singledouble.f90
+	rm -f *.o src/*.o $(GSW)/*.o *.mod *.so *.a src/singledouble.f90 .f2py_f2cmap
 
 veryclean: clean
-	rm -f *~ $(PROGRAMS) 
+	rm -f *~ $(PROGRAMS)

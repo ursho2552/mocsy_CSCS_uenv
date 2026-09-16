@@ -1,5 +1,18 @@
 ChangeLog
 
+version 2.4.0+cscs.1, 2026-09-16  (fork: mocsy_cscs_uenv)
+	-----------------------------------
+	- Makefile: build python module with f2py's meson backend (NumPy >= 2.4):
+	  absolute object/include paths, "python -m numpy.f2py", compiler via FC
+	  instead of the ignored --fcompiler, target named with python's EXT_SUFFIX
+	  so make no longer rebuilds it every time ("make mocsy.so" still works)
+	- README.md replaces README.rst: CSCS Alps uenv build instructions,
+	  requirements, known limitations, updated references
+	- mainpage.txt: https clone URL, updated build instructions, python 3 print,
+	  published versions of references, fixed broken DOI and link
+	- Doxyfile: relative paths, scan src/ recursively
+	- added .gitignore; removed obsolete .travis.yml
+
 version 2.4.0, 2018-11-11
 	-----------------------------------
 	- improved README, adding References and pointing to Doc and Examples

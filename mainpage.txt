@@ -1,4 +1,4 @@
-/*! \mainpage Routines to model the ocean carbonate system (mocsy v2.0)
+/*! \mainpage Routines to model the ocean carbonate system (mocsy v2.4.0+cscs.1)
 
 Details of individual routines are available under the "Files" tab
 above, while the overall description, implementation and use of
@@ -54,7 +54,7 @@ these are not recommended at this time (Orr and Epitalon, 2015).
 preferably in either Fortran or python; others may well prefer the
 facility of packages such as ODV or the Excel version of CO2sys.
 However, <em>mocsy</em>'s greater computational speed (Orr et al.,
-2014) makes it well suited for working with large data sets and ocean
+2015) makes it well suited for working with large data sets and ocean
 models. Furthermore, <em>mocsy</em> replaces 3 typical model
 approximations with exact formulations to improve model accuracy.
 Whereas the equations describing carbonate system thermodynamics
@@ -64,7 +64,7 @@ potential temperature, and concentrations in mol/m3 converted to mol/kg
 with a constant density.  <em>mocsy</em> avoids these approximations
 by calculating the 3 exact quantities from other input
 variables. These approximations lead to significant errors in computed
-variables in the deep ocean (Orr and Epitalon, 2014).
+variables in the deep ocean (Orr and Epitalon, 2015).
 
 With none of the approximations, input from 3-D gridded data products,
 namely GLODAP's DIC and Alk (Key et al., 2004) and World Ocean Atlas
@@ -75,7 +75,7 @@ Loocarnini et al., 2010; Garcia et al., 2010), output from
 species. Corresponding pH differences are less than 0.00002, while
 differences between packages for \f$\Omega_C\f$ and \f$\Omega_A\f$ are
 offset by constant 0.018%. These small differences and their causes
-are discussed in Orr and Epitalon (2014).
+are discussed in Orr and Epitalon (2015).
 
 */
 
@@ -100,12 +100,13 @@ directory under which you want install a new subdirectory <em>mocsy</em>
 containing the code.  Then type
 
 \verbatim
-$ git clone git://github.com/jamesorr/mocsy.git
+$ git clone https://gitlab.climate.unibe.ch/ocean_modelling/mocsy_cscs_uenv.git
 \endverbatim
 
-Otherwise, just go to the main web page on github
-https://github.com/jamesorr/mocsy and click on the link "Download
-ZIP".
+This is a fork of the original repository
+https://github.com/jamesorr/mocsy , adapted to build with recent
+versions of Python and NumPy (see README.md). The original can be
+cloned with <em>git clone https://github.com/jamesorr/mocsy.git</em>.
 
 \section compile Compile it
 
@@ -121,8 +122,9 @@ If successful, you will have just produced an executable
 is not installed on your system, install it or try another one that is
 already installed.  So far, <em>mocsy</em> has been tested and run
 successfully with two compilers: gfortran and ifort.  To change the
-compiler name, edit the <em>makefile</em> and change "f95" to your
-Fortran 95 compiler command.  Then issue the following 2 commands:
+compiler, edit the <em>Makefile</em> and change the FCBIN variable
+(default "gfortran") to your Fortran 95 compiler command.  Then issue
+the following 2 commands:
 
 \verbatim
 $ make clean
@@ -198,8 +200,8 @@ options. Extensive documentation on the arguments, units, and options,
 is accessible by clicking on the "Data Types List" tab and then on
 "mvars" (the module that contains the <em>vars</em> routine). The
 options above would be the common choice for typical ocean models (see
-also <em>test_mocsy.f90</em> for typical options used with
-observations.
+also <em>examples/test_mocsy.f90</em> for typical options used with
+observations).
 
 Other <em>mocsy</em> routines are available, for example 
 to get the entire set of equilibrium constants (constants.f90), 
@@ -228,41 +230,41 @@ with R using <em>rpy2</em>.
 
 \section shareobj Make it useable
 
-The first step, before importing mocsy in python, is to make a shared
-object module <em>mocsy.so</em> using the utility <em>f2py</em>.  This
-fortran-to-python lilbrary converter is part of the python's widely
-used NumPy library. Secondly, you will need a Fortran 95 compiler
-(e.g., GNU's gfortran).  With both <em>NumPy</em> and gfortran
-installed, just go to the directory where you downloaded the mocsy
-routines, and type
+The first step, before importing mocsy in python, is to build a shared
+object module using the utility <em>f2py</em>.  This
+fortran-to-python library converter is part of the widely used NumPy
+library. You will need:
 
-\verbatim 
-make mocsy.so
-\endverbatim 
+- Python 3 with NumPy, plus <em>meson</em> and <em>ninja</em>
+  (f2py's build backend since NumPy 1.26), e.g.
+  <em>python -m pip install numpy meson ninja</em>
+- a Fortran 95 compiler (e.g., GNU's gfortran), <em>make</em> and <em>m4</em>
 
-If successful, output from that command will end in "Removing build
-directory ..." and the new file <em>mocsy.so</em> will have been
-produced.  If unsuccesful, test to see that you have gfortran
-installed by typing
+With these installed (and your Python environment activated), go to
+the directory where you downloaded the mocsy routines, and type
 
 \verbatim
-f2py -c --help-fcompiler
-\endverbatim 
+make mocsy.so
+\endverbatim
 
-If <em>--fcompiler=gnu95</em> does not show up just under the line
-"Fortram compilers found:", then try again to reinstall it.
-Otherwise, if you already have another Fortran 95 compiler installed,
-simply edit the <em>makefile</em> and change the name of the
-FC and F90 variables, accordingly. In addition, change the
-corresponding part of the last line <em>--fcompiler=gnu95</em> to the
-name of your compiler, as listed under the "Fortran compilers found:"
-line from the above command.
+If successful, a new file named like
+<em>mocsy.cpython-313-x86_64-linux-gnu.so</em> will have been produced
+(the suffix depends on your Python version and platform). Warnings
+during compilation are normal. To use a compiler other than gfortran,
+edit the FCBIN variable in the <em>Makefile</em>; f2py passes it to
+meson through the FC environment variable. To build with a specific
+Python interpreter, use <em>make mocsy.so PYTHON=/path/to/python</em>.
+
+Step-by-step instructions for CSCS Alps (using a uenv) are given in
+README.md.
 
 \section import Import it
 
-After a successful build, the shared-object file <em>mocsy.so</em>
-will be found in the local directory. It is then imported into a
-python script like any other python library with
+After a successful build, the shared-object file
+(<em>mocsy.cpython-*.so</em>) will be found in the local directory.
+When that directory is your working directory or is on your
+PYTHONPATH, it is imported into a python script like any other python
+library with
 
 \verbatim
 import mocsy
@@ -274,20 +276,20 @@ Once <em>mocsy</em> is imported, you can see the basic routines that
 are available, with the standard python library documentation command:
 
 \verbatim
-print mocsy.__doc__
+print(mocsy.__doc__)
 \endverbatim
 
 For details about the arguments of each routine, just add the name of
 the "module", e.g.,
 
 \verbatim
-print mocsy.mvars.__doc__
+print(mocsy.mvars.__doc__)
 \endverbatim
 
 One could in addition add the name of the "routine", e.g.,
 
 \verbatim
-print mocsy.mvars.vars__doc__
+print(mocsy.mvars.vars.__doc__)
 \endverbatim
 
 but that is usually unnecessary. Typically the documentation is
@@ -312,18 +314,9 @@ As an example, here is the call in python of the main routine <em>vars</em>
 Input variables and options are on the right side of the equal sign,
 whereas output variables are on the left. All input and output
 arguments must be 1-D vectors (not multidimensional arrays); the
-conversion, both ways, is illustrated in the script
-<em>mocsy_GLODAP.py</em> as are other finer points for using
-<em>mocsy</em> in python. For instance, that script also uses the
-python library <em>cdms</em> to read input files (for DIC, ALk, T, S,
-\f$\hbox{PO}_4^{-3}\f$, and \f$\hbox{SiO}_2\f$) and write the output
-files, all in netCDF format. Moreover, to save disk space for the
-user, input files are read remotely, using OpenDAP. This script is
-executed with the following command:
-
-\verbatim
-python mocsy_GLODAP.py
-\endverbatim
+conversion, both ways, is illustrated by the original authors' script
+<em>mocsy_GLODAP.py</em> (not distributed in this repository), which
+also read netCDF input files remotely via OpenDAP.
 
 Other subroutines needed by <em>mocsy.mvars</em> are also available to
 the user.  For example, to get the equilibrium constants that were
@@ -445,7 +438,7 @@ pH,pco2,fco2,co2,hco3,co3,OmegaA,OmegaC,BetaD,DENis,p,Tis = \
 mocsy.mvars (temp=temp, sal=sal, alk=alk, dic=dic, sil=sio2, phos=po4, patm=1, depth=depth, lat=lat, optcon='mol/m3', optt='Tpot', optp='m')
 
 # Print out depth and carbonate ion concentration (converted to umol/kg)
-print depth, co3 / (DENis * 1e-6)
+print(depth, co3 / (DENis * 1e-6))
 
 \endverbatim
 
@@ -489,12 +482,10 @@ outfile.close()
 
 4) Example with netCDF files for input and output:
 
-MODEL example: See the python script mocsy_CMIP5.py to compute carbonate
-chemistry variables from CMIP5 model input.
-
-DATA example: See the python script mocsy_GLODAP.py to compute carbonate chemistry
-variables from GLODAP DIC and Alk along with T, S, PO43- and SiO2 from
-the World Ocean Atlas (2009)
+The original authors used two scripts for this, mocsy_CMIP5.py (CMIP5
+model input) and mocsy_GLODAP.py (GLODAP DIC and Alk with T, S, PO43-
+and SiO2 from the World Ocean Atlas 2009). Neither script is
+distributed in this repository.
 
 */
 
@@ -510,7 +501,8 @@ D.C., 184 pp., 2010.
 
 Dickson, A. G., Sabine, C. L., and Christian, J. R.: Guide to best
 practices for ocean CO2 measurements, PICES Special Publication 3,
-IOCCP Report No. 8, http:// aquaticcommons.org/1443/, 2007.
+IOCCP Report No. 8, 191 pp., 2007,
+https://www.ncei.noaa.gov/access/ocean-carbon-acidification-data-system/oceans/Handbook_2007.html
 
 Frankignoulle, M.: A complete set of buffer factors for acid/base CO2
 system in seawater, <em>J.  Mar. Sys., 5,</em> 111–118, 1994.
@@ -539,12 +531,17 @@ Millero, F. J.: Carbonate constants for estuarine waters, <em>Marine and
 Freshwater Research, 61</em>, 139--142, 2010.
 
 Orr, J. C. and Epitalon, J.-M.: Improved routines to model the ocean
- carbonate system: mocsy 1.0, <em>Geosci. Model Dev. Disc., 7,</em>
- 2877–2902, doi:10.5194/gmdd–7–2877–2014, 2014.
+ carbonate system: mocsy 2.0, <em>Geosci. Model Dev., 8,</em>
+ 485–499, https://doi.org/10.5194/gmd-8-485-2015, 2015.
 
-Orr, J. C., Epitalon, J.-M., and Gattuso, J.-P.: Comparison of seven
-packages that compute ocean carbonate chemistry, <em>Biogeosciences
-Discuss., 11,</em> 5327–5397, doi:10.5194/bgd-11-5327-2014, 2014.
+Orr, J. C., Gattuso, J.-P., and Epitalon, J.-M.: Comparison of ten
+packages that compute ocean carbonate chemistry, <em>Biogeosciences,
+12,</em> 1483–1510, https://doi.org/10.5194/bg-12-1483-2015, 2015.
+
+Orr, J. C., Epitalon, J.-M., Dickson, A. G., and Gattuso, J.-P.: Routine
+uncertainty propagation for the marine carbon dioxide system,
+<em>Marine Chemistry, 207,</em> 84–107,
+https://doi.org/10.1016/j.marchem.2018.10.006, 2018.
 
 Saunders, P: Practical conversion of pressure to depth,
 <em>J. Phys. Oceanogr., 11</em>, 573-574, 1981.
