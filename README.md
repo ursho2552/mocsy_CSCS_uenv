@@ -42,7 +42,7 @@ variables to input variables were added later (Orr et al., 2018).
 ### 1. Get the code
 
 ```bash
-git clone https://gitlab.climate.unibe.ch/ocean_modelling/mocsy_cscs_uenv.git
+git clone <repo url>
 cd mocsy_cscs_uenv
 ```
 
